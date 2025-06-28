@@ -2,6 +2,7 @@ from functools import partial
 from itertools import count
 from pathlib import Path
 from typing import Callable, Iterator
+import re  # 导入 re 模块
 
 from ModuleFolders.Cache.CacheFile import CacheFile
 from ModuleFolders.Cache.CacheItem import CacheItem
@@ -48,10 +49,13 @@ class SrtWriter(BaseBilingualWriter, BaseTranslatedWriter):
             translation_file_path.write_text("\n\n".join(output), encoding=pre_write_metadata.encoding)
 
     def _map_to_translated_item(self, item: CacheItem):
+        final_text = item.final_text.strip()
+        # 变更: 正则表达式现在替换中/英文逗号、英文句号和空格，但保留中文句号 (。)
+        processed_text = re.sub(r'[，,。 ]', ' ', final_text)
         block = [
             str(item.require_extra("subtitle_number")),
             item.require_extra("subtitle_time"),
-            item.final_text.strip(),
+            processed_text,
             "",
         ]
         return block
@@ -66,7 +70,9 @@ class SrtWriter(BaseBilingualWriter, BaseTranslatedWriter):
                 "",
             ]
             yield original_block
-        if self._strip_text(item.translated_text):
+        
+        # Bug 修复: 判断条件使用 item.final_text
+        if self._strip_text(item.final_text):
             number = next(counter)
             translated_block = self._map_to_translated_item(item)
             translated_block[0] = str(number)
