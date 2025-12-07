@@ -44,7 +44,7 @@ class GoogleRequester(Base):
             # 构建基础配置
             gen_config = types.GenerateContentConfig(
                 system_instruction=system_prompt,
-                max_output_tokens=65536 if model_name.startswith("gemini-2.5") else 8192,
+                max_output_tokens=65536 if model_name.startswith("gemini-2.5") else 65536,
                 temperature=temperature,
                 top_p=top_p,
                 safety_settings=[
